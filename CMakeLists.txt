@@ -849,7 +849,7 @@ elseif(LINUX)
     endif(SWIFTSHADER_BUILD_WSI_D2D)
 elseif(ANDROID)
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_ANDROID_KHR")
-    target_include_directories(${PROJECT_NAME} PRIVATE
+    target_include_directories(vk_base INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
         ${CMAKE_CURRENT_SOURCE_DIR}/include/Android
     )
