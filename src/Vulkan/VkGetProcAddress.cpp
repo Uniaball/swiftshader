@@ -808,6 +808,7 @@ hwvulkan_device_t hal_device = {
 	    .version = HWVULKAN_DEVICE_API_VERSION_0_1,
 	    .module = &HAL_MODULE_INFO_SYM.common,
 	    .close = CloseDevice,
+        .reserved = {0},
 	},
 	.EnumerateInstanceExtensionProperties = vkEnumerateInstanceExtensionProperties,
 	.CreateInstance = vkCreateInstance,
@@ -834,6 +835,8 @@ extern "C" hwvulkan_module_t HAL_MODULE_INFO_SYM = {
 	    .name = "Swiftshader Pastel",
 	    .author = "Google",
 	    .methods = &module_methods,
+        .dso = nullptr,
+        .reserved = {0},
 	}
 };
 
