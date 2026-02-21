@@ -15,11 +15,15 @@
  */
 #ifndef ANDROID_VNDK_NATIVEWINDOW_AHARDWAREBUFFER_H
 #define ANDROID_VNDK_NATIVEWINDOW_AHARDWAREBUFFER_H
+
 // vndk is a superset of the NDK
 #include <android/hardware_buffer.h>
 #include <cutils/native_handle.h>
 #include <errno.h>
+#include <dlfcn.h>
+
 __BEGIN_DECLS
+
 /**
  * Get the native handle from an AHardwareBuffer.
  *
@@ -28,11 +32,13 @@ __BEGIN_DECLS
  */
 const native_handle_t* _Nullable AHardwareBuffer_getNativeHandle(
         const AHardwareBuffer* _Nonnull buffer);
+
 enum CreateFromHandleMethod {
     // enum values chosen to match internal GraphicBuffer::HandleWrapMethod
     AHARDWAREBUFFER_CREATE_FROM_HANDLE_METHOD_REGISTER = 2,
     AHARDWAREBUFFER_CREATE_FROM_HANDLE_METHOD_CLONE = 3,
 };
+
 /**
  * Create an AHardwareBuffer from a native handle.
  *
@@ -52,6 +58,7 @@ enum CreateFromHandleMethod {
 int AHardwareBuffer_createFromHandle(const AHardwareBuffer_Desc* _Nonnull desc,
                                      const native_handle_t* _Nonnull handle, int32_t method,
                                      AHardwareBuffer* _Nullable* _Nonnull outBuffer);
+
 /**
  * Buffer pixel formats.
  */
@@ -82,6 +89,7 @@ enum {
     /* same as HAL_PIXEL_FORMAT_YCBCR_422_I */
     AHARDWAREBUFFER_FORMAT_YCbCr_422_I              = 0x14,
 };
+
 /**
  * Buffer usage flags.
  */
@@ -94,6 +102,7 @@ enum {
     /* Mask for the camera access values. */
     AHARDWAREBUFFER_USAGE_CAMERA_MASK               = 6UL << 16,
 };
+
 /**
  * Additional options for AHardwareBuffer_allocateWithOptions. These correspond to
  * android.hardware.graphics.common.ExtendableType
@@ -102,6 +111,7 @@ typedef struct {
     const char* _Nonnull name;
     int64_t value;
 } AHardwareBufferLongOptions;
+
 enum AHardwareBufferStatus : int32_t {
     /* Success, no error */
     AHARDWAREBUFFER_STATUS_OK = 0,
@@ -114,6 +124,7 @@ enum AHardwareBufferStatus : int32_t {
     /* An unknown error occurred */
     AHARDWAREBUFFER_STATUS_UNKNOWN_ERROR = (-2147483647 - 1),
 };
+
 /**
  * Allocates a buffer that matches the passed AHardwareBuffer_Desc with additional options
  *
@@ -140,6 +151,7 @@ enum AHardwareBufferStatus AHardwareBuffer_allocateWithOptions(
         const AHardwareBuffer_Desc* _Nonnull desc,
         const AHardwareBufferLongOptions* _Nullable additionalOptions, size_t additionalOptionsSize,
         AHardwareBuffer* _Nullable* _Nonnull outBuffer) __INTRODUCED_IN(__ANDROID_API_V__);
+
 /**
  * Queries the dataspace of the given AHardwareBuffer.
  *
@@ -148,6 +160,7 @@ enum AHardwareBufferStatus AHardwareBuffer_allocateWithOptions(
  */
 enum ADataSpace AHardwareBuffer_getDataSpace(const AHardwareBuffer* _Nonnull buffer)
         __INTRODUCED_IN(__ANDROID_API_V__);
+
 /**
  * Sets the dataspace of the given AHardwareBuffer
  * @param buffer The non-null buffer for which to set the dataspace
@@ -159,5 +172,30 @@ enum ADataSpace AHardwareBuffer_getDataSpace(const AHardwareBuffer* _Nonnull buf
 enum AHardwareBufferStatus AHardwareBuffer_setDataSpace(AHardwareBuffer* _Nonnull buffer,
                                                         enum ADataSpace dataSpace)
         __INTRODUCED_IN(__ANDROID_API_V__);
+
+static inline int AHardwareBuffer_createFromHandle(const AHardwareBuffer_Desc* desc,
+                                                   const native_handle_t* handle,
+                                                   int32_t method,
+                                                   AHardwareBuffer** outBuffer) {
+    if (!desc || !handle || !outBuffer) {
+        return -EINVAL;
+    }
+
+    typedef int (*RealFuncType)(const AHardwareBuffer_Desc*,
+                                const native_handle_t*,
+                                int32_t,
+                                AHardwareBuffer**);
+
+    RealFuncType real_func = (RealFuncType)dlsym(RTLD_DEFAULT, "AHardwareBuffer_createFromHandle");
+    
+    if (real_func) {
+        return real_func(desc, handle, method, outBuffer);
+    }
+
+    errno = ENOSYS;
+    return -ENOSYS;
+}
+
 __END_DECLS
+
 #endif /* ANDROID_VNDK_NATIVEWINDOW_AHARDWAREBUFFER_H */
