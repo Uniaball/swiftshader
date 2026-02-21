@@ -1,0 +1,139 @@
+name: Debug Android Libraries
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  debug-libs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install tree and file
+        run: |
+          sudo apt update
+          sudo apt install tree file -y
+
+      - name: Show NDK environment
+        run: |
+          echo "## 🔍 NDK Environment" >> $GITHUB_STEP_SUMMARY
+          echo "ANDROID_NDK_LATEST_HOME: $ANDROID_NDK_LATEST_HOME" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ls -la $ANDROID_NDK_LATEST_HOME || echo "NDK not found"
+
+      - name: Find all Android libraries
+        run: |
+          echo "## 📚 Android Libraries" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 查找关键库文件
+          LIBS=("liblog.so" "libandroid.so" "libsync.so" "libnativewindow.so" "libvulkan.so")
+          
+          for lib in "${LIBS[@]}"; do
+            echo "### Searching for $lib" >> $GITHUB_STEP_SUMMARY
+            find "$ANDROID_NDK_LATEST_HOME" -name "$lib" 2>/dev/null | while read path; do
+              echo "- \`$path\`" >> $GITHUB_STEP_SUMMARY
+              file "$path" >> $GITHUB_STEP_SUMMARY
+            done
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: Find all Android headers
+        run: |
+          echo "## 📁 Android Headers" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 查找关键头文件
+          HEADERS=(
+            "android/hardware_buffer.h"
+            "sync/sync.h"
+            "android/log.h"
+            "sys/cdefs.h"
+            "cutils/native_handle.h"
+          )
+          
+          for header in "${HEADERS[@]}"; do
+            echo "### Searching for $header" >> $GITHUB_STEP_SUMMARY
+            find "$ANDROID_NDK_LATEST_HOME" -path "*/$header" 2>/dev/null | while read path; do
+              echo "- \`$path\`" >> $GITHUB_STEP_SUMMARY
+            done
+            if [ $? -ne 0 ]; then
+              echo "  ❌ Not found" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: Show platform library directories
+        run: |
+          echo "## 🗂️ Platform Library Directories" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # 列出各 API 版本的库目录 [citation:1][citation:2]
+          for api in 24 29 30 33 34; do
+            for arch in aarch64-linux-android arm-linux-androideabi x86_64-linux-android; do
+              LIB_PATH="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/$arch/$api"
+              if [ -d "$LIB_PATH" ]; then
+                echo "### $arch API $api" >> $GITHUB_STEP_SUMMARY
+                echo "\`$LIB_PATH\`" >> $GITHUB_STEP_SUMMARY
+                ls -1 "$LIB_PATH" | grep -E "\.(so|a)$" | head -10 >> $GITHUB_STEP_SUMMARY
+                echo "... (truncated)" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          done
+
+      - name: Check CMake configuration
+        run: |
+          echo "## ⚙️ CMake Configuration Tips" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "在 CMake 中查找库的常用命令 [citation:1]:" >> $GITHUB_STEP_SUMMARY
+          echo '```cmake' >> $GITHUB_STEP_SUMMARY
+          echo '# find_library 会自动搜索 NDK 预设目录 [citation:1]' >> $GITHUB_STEP_SUMMARY
+          echo 'find_library(log-lib log)' >> $GITHUB_STEP_SUMMARY
+          echo 'find_library(android-lib android)' >> $GITHUB_STEP_SUMMARY
+          echo 'find_library(sync-lib sync)' >> $GITHUB_STEP_SUMMARY
+          echo 'find_library(nativewindow-lib nativewindow)' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# 链接库' >> $GITHUB_STEP_SUMMARY
+          echo 'target_link_libraries(your_target' >> $GITHUB_STEP_SUMMARY
+          echo '    ${log-lib}' >> $GITHUB_STEP_SUMMARY
+          echo '    ${android-lib}' >> $GITHUB_STEP_SUMMARY
+          echo '    ${sync-lib}' >> $GITHUB_STEP_SUMMARY
+          echo '    ${nativewindow-lib}' >> $GITHUB_STEP_SUMMARY
+          echo ')' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "CMake 3.24+ 支持 FindJNI 模块查找 Android NDK 库 [citation:9]:" >> $GITHUB_STEP_SUMMARY
+          echo '```cmake' >> $GITHUB_STEP_SUMMARY
+          echo 'find_package(JNI REQUIRED COMPONENTS NativeHelper)' >> $GITHUB_STEP_SUMMARY
+          echo 'target_link_libraries(your_target PRIVATE JNI::NativeHelper)' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate search commands
+        run: |
+          echo "## 🔎 Quick Search Commands" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "如果想手动查找特定库:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo '# 查找库文件' >> $GITHUB_STEP_SUMMARY
+          echo 'find "$ANDROID_NDK_LATEST_HOME" -name "lib*.so" | grep -E "sync|nativewindow|hardware"' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# 查找头文件' >> $GITHUB_STEP_SUMMARY
+          echo 'find "$ANDROID_NDK_LATEST_HOME" -name "*.h" | grep -E "sync|hardware_buffer"' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# 查看链接器搜索路径' >> $GITHUB_STEP_SUMMARY
+          echo '$CC -print-search-dirs' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload findings as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-library-debug
+          path: ${{ github.workspace }}/*.log
+          if-no-files-found: ignore
