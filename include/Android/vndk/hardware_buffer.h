@@ -40,26 +40,6 @@ enum CreateFromHandleMethod {
 };
 
 /**
- * Create an AHardwareBuffer from a native handle.
- *
- * This function wraps a native handle in an AHardwareBuffer suitable for use by applications or
- * other parts of the system. The contents of desc will be returned by AHardwareBuffer_describe().
- *
- * If method is AHARDWAREBUFFER_CREATE_FROM_HANDLE_METHOD_REGISTER, the handle is assumed to be
- * unregistered, and it will be registered/imported before being wrapped in the AHardwareBuffer.
- * If successful, the AHardwareBuffer will own the handle.
- *
- * If method is AHARDWAREBUFFER_CREATE_FROM_HANDLE_METHOD_CLONE, the handle will be cloned and the
- * clone registered. The AHardwareBuffer will own the cloned handle but not the original.
- *
- * \return 0 on success, -EINVAL if \a desc or \a handle or outBuffer is NULL, or an error number if
- * the operation fails for any reason.
- */
-int AHardwareBuffer_createFromHandle(const AHardwareBuffer_Desc* _Nonnull desc,
-                                     const native_handle_t* _Nonnull handle, int32_t method,
-                                     AHardwareBuffer* _Nullable* _Nonnull outBuffer);
-
-/**
  * Buffer pixel formats.
  */
 enum {
@@ -173,21 +153,21 @@ enum AHardwareBufferStatus AHardwareBuffer_setDataSpace(AHardwareBuffer* _Nonnul
                                                         enum ADataSpace dataSpace)
         __INTRODUCED_IN(__ANDROID_API_V__);
 
-static inline int AHardwareBuffer_createFromHandle(const AHardwareBuffer_Desc* desc,
-                                                   const native_handle_t* handle,
+static inline int AHardwareBuffer_createFromHandle(const AHardwareBuffer_Desc* _Nonnull desc,
+                                                   const native_handle_t* _Nonnull handle,
                                                    int32_t method,
-                                                   AHardwareBuffer** outBuffer) {
+                                                   AHardwareBuffer* _Nullable* _Nonnull outBuffer) {
     if (!desc || !handle || !outBuffer) {
         return -EINVAL;
     }
 
-    typedef int (*RealFuncType)(const AHardwareBuffer_Desc*,
-                                const native_handle_t*,
+    typedef int (*RealFuncType)(const AHardwareBuffer_Desc* _Nonnull,
+                                const native_handle_t* _Nonnull,
                                 int32_t,
-                                AHardwareBuffer**);
+                                AHardwareBuffer* _Nullable* _Nonnull);
 
     RealFuncType real_func = (RealFuncType)dlsym(RTLD_DEFAULT, "AHardwareBuffer_createFromHandle");
-    
+
     if (real_func) {
         return real_func(desc, handle, method, outBuffer);
     }
