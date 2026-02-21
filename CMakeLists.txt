@@ -851,6 +851,7 @@ elseif(ANDROID)
     target_compile_definitions(vk_base INTERFACE 
         "VK_USE_PLATFORM_ANDROID_KHR"
         "SWIFTSHADER_EXTERNAL_MEMORY_ANDROID_HARDWARE_BUFFER=1"
+        "_FORTIFY_SOURCE=0"
     )
     target_include_directories(vk_base INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
