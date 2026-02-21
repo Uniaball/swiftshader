@@ -203,6 +203,7 @@ target_link_libraries(vk_swiftshader
         log
         android
         sync
+        nativewindow
 )
 
 set_shared_library_export_map(vk_swiftshader ${CMAKE_CURRENT_SOURCE_DIR})
