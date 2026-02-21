@@ -1,6 +1,7 @@
 name: Build SwiftShader for Android ARM64
 
 on:
+  push: 
   workflow_dispatch:
 
 jobs:
@@ -56,4 +57,4 @@ jobs:
           name: swiftshader-arm64-libs
           path: |
             build/libvk_swiftshader.so
-            build/vk_swiftshader_icd.json
+            build/Android/vk_swiftshader_icd.json
