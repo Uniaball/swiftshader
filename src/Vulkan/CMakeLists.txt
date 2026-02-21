@@ -46,6 +46,7 @@ set(VULKAN_SRC_FILES
     VkDevice.hpp
     VkDeviceMemory.cpp
     VkDeviceMemory.hpp
+    VkDeviceMemoryExternalAndroid.cpp
     VkDeviceMemoryExternalHost.cpp
     VkDeviceMemoryExternalHost.hpp
     VkDeviceMemoryExternalLinux.hpp
@@ -199,6 +200,9 @@ target_link_libraries(vk_swiftshader
         ${OS_LIBS}
         ${SWIFTSHADER_LIBS}
         $<$<BOOL:${SWIFTSHADER_ENABLE_VULKAN_DEBUGGER}>:cppdap>
+        log
+        android
+        sync
 )
 
 set_shared_library_export_map(vk_swiftshader ${CMAKE_CURRENT_SOURCE_DIR})
