@@ -189,6 +189,27 @@ target_link_options(vk_swiftshader
         ${VULKAN_LINKER_FLAGS}
 )
 
+string(REGEX REPLACE "android-([0-9]+)" "\\1" ANDROID_PLATFORM_LEVEL ${ANDROID_PLATFORM})
+
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    set(NDK_ARCH_DIR "aarch64-linux-android")
+elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+    set(NDK_ARCH_DIR "arm-linux-androideabi")
+elseif(ANDROID_ABI STREQUAL "x86")
+    set(NDK_ARCH_DIR "i686-linux-android")
+elseif(ANDROID_ABI STREQUAL "x86_64")
+    set(NDK_ARCH_DIR "x86_64-linux-android")
+else()
+    message(FATAL_ERROR "Unsupported ABI: ${ANDROID_ABI}")
+endif()
+
+set(NDK_SYSROOT_LIB "${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${NDK_ARCH_DIR}/${ANDROID_PLATFORM_LEVEL}")
+
+set(LOG_LIB "${NDK_SYSROOT_LIB}/liblog.so")
+set(ANDROID_LIB "${NDK_SYSROOT_LIB}/libandroid.so")
+set(SYNC_LIB "${NDK_SYSROOT_LIB}/libsync.so")
+set(NATIVEWINDOW_LIB "${NDK_SYSROOT_LIB}/libnativewindow.so")
+
 target_link_libraries(vk_swiftshader
     PRIVATE
         vk_system
@@ -200,10 +221,10 @@ target_link_libraries(vk_swiftshader
         ${OS_LIBS}
         ${SWIFTSHADER_LIBS}
         $<$<BOOL:${SWIFTSHADER_ENABLE_VULKAN_DEBUGGER}>:cppdap>
-        log
-        android
-        sync
-        nativewindow
+        ${LOG_LIB}
+        ${ANDROID_LIB}
+        ${SYNC_LIB}
+        ${NATIVEWINDOW_LIB}
 )
 
 set_shared_library_export_map(vk_swiftshader ${CMAKE_CURRENT_SOURCE_DIR})
