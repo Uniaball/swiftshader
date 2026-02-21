@@ -22,10 +22,8 @@ jobs:
       - name: CCache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ runner.os }}-android-swiftshader-${{ github.job }}
+          key: ${{ runner.os }}-ndk
           max-size: 2G
-          restore-keys: |
-            ${{ runner.os }}-android-swiftshader-
 
       - name: Generate commit.h
         run: |
