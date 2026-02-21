@@ -32,11 +32,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Android")
     set(ANDROID TRUE)
     set(CMAKE_CXX_FLAGS "-DANDROID_NDK_BUILD")
-    target_include_directories(${PROJECT_NAME} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/Android
-    )
-    
 elseif(WIN32)
 elseif(APPLE)
 elseif(FUCHSIA)
@@ -854,6 +849,10 @@ elseif(LINUX)
     endif(SWIFTSHADER_BUILD_WSI_D2D)
 elseif(ANDROID)
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_ANDROID_KHR")
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/vulkan
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/Android
+    )
 elseif(APPLE)
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_MACOS_MVK")
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_METAL_EXT")
