@@ -1,0 +1,56 @@
+name: Build SwiftShader for Android ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: 'false'
+          fetch-depth: 1
+
+      - name: Install Ninja
+        run: |
+          sudo apt update
+          sudo apt install ninja-build
+
+      - name: CCache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-android-swiftshader-${{ github.job }}
+          max-size: 2G
+          restore-keys: |
+            ${{ runner.os }}-android-swiftshader-
+
+      - name: Generate commit.h
+        run: |
+          cd src
+          python3 commit_id.py gen commit.h
+        
+      - name: Configure CMake for Android ARM64
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-29 \
+            -DANDROID_STL=c++_shared \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSWIFTSHADER_BUILD_TESTS=OFF \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build vk_swiftshader
+        run: cmake --build build --target vk_swiftshader --parallel
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: swiftshader-arm64-libs
+          path: |
+            build/libvk_swiftshader.so
+            build/vk_swiftshader_icd.json
