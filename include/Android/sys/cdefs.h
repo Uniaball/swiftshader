@@ -200,3 +200,10 @@
 #if __has_include(<android/ndk-version.h>)
 #include <android/ndk-version.h>
 #endif
+
+#ifndef __pass_object_size
+#define __pass_object_size
+#endif
+#ifndef __pass_object_size_n
+#define __pass_object_size_n(n)
+#endif
