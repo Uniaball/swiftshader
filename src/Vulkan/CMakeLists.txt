@@ -189,6 +189,8 @@ target_link_options(vk_swiftshader
         ${VULKAN_LINKER_FLAGS}
 )
 
+set(NDK_ROOT "$ENV{ANDROID_NDK_LATEST_HOME}")
+
 string(REGEX REPLACE "android-([0-9]+)" "\\1" ANDROID_PLATFORM_LEVEL ${ANDROID_PLATFORM})
 
 if(ANDROID_ABI STREQUAL "arm64-v8a")
@@ -203,7 +205,7 @@ else()
     message(FATAL_ERROR "Unsupported ABI: ${ANDROID_ABI}")
 endif()
 
-set(NDK_SYSROOT_LIB "${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${NDK_ARCH_DIR}/${ANDROID_PLATFORM_LEVEL}")
+set(NDK_SYSROOT_LIB "${NDK_ROOT}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/${NDK_ARCH_DIR}/${ANDROID_PLATFORM_LEVEL}")
 
 set(LOG_LIB "${NDK_SYSROOT_LIB}/liblog.so")
 set(ANDROID_LIB "${NDK_SYSROOT_LIB}/libandroid.so")
