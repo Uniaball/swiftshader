@@ -27,6 +27,9 @@
 
 #define HARDWARE_HAL_API_VERSION HARDWARE_MAKE_API_VERSION(1, 0)
 
+#define HARDWARE_MODULE_API_VERSION(maj, min) HARDWARE_MAKE_API_VERSION(maj, min)
+#define HARDWARE_DEVICE_API_VERSION_2(maj, min, sub) HARDWARE_MAKE_API_VERSION(maj, min)
+
 struct hw_module_methods_t;
 
 struct hw_module_t {
