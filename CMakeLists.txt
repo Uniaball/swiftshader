@@ -857,6 +857,8 @@ elseif(ANDROID)
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/Android
     )
+    target_compile_options(vk_base INTERFACE -flto)
+    target_link_options(vk_base INTERFACE -flto)
 elseif(APPLE)
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_MACOS_MVK")
     target_compile_definitions(vk_base INTERFACE "VK_USE_PLATFORM_METAL_EXT")
